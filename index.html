@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>โปรแกรมแก้ไขภาพ</title>
+<link rel="stylesheet" href="style.css?v=23">
+</head>
+<body>
+<header>
+  <h1>🖼️ โปรแกรมแก้ไขภาพ</h1>
+  <div class="row">
+    <label class="btn" for="file">เปิดรูปภาพ</label>
+    <input id="file" type="file" accept="image/*">
+    <button id="download" class="primary" disabled>ดาวน์โหลด</button>
+  </div>
+</header>
+
+<main class="app">
+  <section class="viewer">
+    <div class="stage" id="stage">
+      <div class="drop" id="drop">ลากรูปมาวางที่นี่<br>หรือกด “เปิดรูปภาพ”</div>
+      <canvas id="canvas"></canvas>
+      <span id="panHint" hidden>✋ ลากเพื่อเลื่อนดู</span>
+    </div>
+    <div class="actions">
+      <button id="compare" disabled aria-label="กดค้างเพื่อดูต้นฉบับ" title="กดค้างเพื่อดูต้นฉบับ">👁</button>
+      <button id="reset" disabled aria-label="รีเซ็ตทั้งหมด" title="รีเซ็ตทั้งหมด">↺</button>
+    </div>
+    <div class="infobar" id="infoBar">
+      <div class="ibtop">
+        <select id="jobSelect" aria-label="ประเภทงาน"></select>
+        <button type="button" id="openSettings">⚙ ตั้งค่า</button>
+      </div>
+      <span class="main" id="ibSize">ยังไม่ได้เปิดรูปภาพ</span>
+      <span class="price" id="ibPrice"></span>
+      <span class="sub" id="ibSub">เปิดรูปเพื่อดูขนาดและราคา</span>
+      <span class="sub" id="ibSub2"></span>
+    </div>
+    <div class="zoombar">
+      <button type="button" id="zoomOut" aria-label="ซูมออก" data-needs-image="1" disabled>−</button>
+      <span id="zoomLabel">100%</span>
+      <button type="button" id="zoomIn" aria-label="ซูมเข้า" data-needs-image="1" disabled>+</button>
+      <button type="button" id="zoomFit" data-needs-image="1" disabled>พอดีหน้าจอ</button>
+    </div>
+  </section>
+
+  <aside class="panel" id="panel">
+  <section class="win" id="winTransform" hidden aria-label="แปลงภาพ">
+      <div class="win-head"><span class="ico">🔄</span><strong>แปลงภาพ</strong><button type="button" class="win-close" aria-label="ปิด">✕</button></div>
+      <div class="card-body">
+        <div id="transforms"></div>
+      </div>
+    </section>
+  <section class="win" id="winSize" hidden aria-label="ปรับขนาดภาพ">
+      <div class="win-head"><span class="ico">📐</span><strong>ปรับขนาดภาพ</strong><button type="button" class="win-close" aria-label="ปิด">✕</button></div>
+      <div class="card-body">
+        <div class="seg">
+          <button type="button" data-mode="auto" data-needs-image="1" disabled>อัตโนมัติ</button>
+          <button type="button" data-mode="manual" data-needs-image="1" disabled>กำหนดเอง</button>
+        </div>
+        <div id="scaleAuto">
+          <select id="preset" data-needs-image="1" disabled aria-label="ขนาดอัตโนมัติ"></select>
+        </div>
+        <div id="scaleManual" hidden>
+          <div class="grid2">
+            <label>หน่วย
+              <select id="scaleUnit" data-needs-image="1" disabled>
+                <option value="px">พิกเซล (px)</option>
+                <option value="cm">เซนติเมตร (cm)</option>
+                <option value="mm">มิลลิเมตร (mm)</option>
+                <option value="in">นิ้ว (in)</option>
+              </select>
+            </label>
+            <label id="dpiWrap" hidden>ความละเอียด (DPI)
+              <input type="number" id="scaleDpi" min="1" max="1200" step="1" value="300" data-needs-image="1" disabled>
+            </label>
+          </div>
+          <div class="grid2">
+            <label><span id="wLabel">กว้าง (px)</span><input type="number" id="scaleW" min="0" step="any" data-needs-image="1" disabled></label>
+            <label><span id="hLabel">สูง (px)</span><input type="number" id="scaleH" min="0" step="any" data-needs-image="1" disabled></label>
+          </div>
+          <label class="check"><input type="checkbox" id="scaleLock" data-needs-image="1" disabled> ล็อกสัดส่วนภาพ (ติ๊กออกเพื่อกรอกกว้าง/สูงอิสระ)</label>
+          <button type="button" id="scaleReset" data-needs-image="1" disabled>↺ รีเซ็ตขนาด</button>
+        </div>
+        <p class="size-info" id="sizeInfo"></p>
+      </div>
+    </section>
+  <section class="win" id="winAdjust" hidden aria-label="ปรับแต่งภาพ">
+      <div class="win-head"><span class="ico">✨</span><strong>ปรับแต่งภาพ</strong><button type="button" class="win-close" aria-label="ปิด">✕</button></div>
+      <div class="card-body">
+        <div id="sliders"></div>
+      </div>
+    </section>
+  <section class="win" id="winFile" hidden aria-label="สีและไฟล์ที่บันทึก">
+      <div class="win-head"><span class="ico">💾</span><strong>สีและไฟล์ที่บันทึก</strong><button type="button" class="win-close" aria-label="ปิด">✕</button></div>
+      <div class="card-body">
+        <div class="group">
+          <h3>ประเภทสี</h3>
+          <div class="seg">
+            <button type="button" data-color="rgb" class="active">RGB</button>
+            <button type="button" data-color="cmyk">CMYK</button>
+          </div>
+          <p class="size-info" id="colorInfo"></p>
+        </div>
+        <div class="group">
+          <h3>รูปแบบไฟล์</h3>
+          <select id="fileFormat" aria-label="รูปแบบไฟล์"></select>
+          <div class="slider" id="qualityWrap" hidden>
+            <label for="quality"><span>คุณภาพ</span><output id="qualityOut">92%</output></label>
+            <input type="range" id="quality" min="10" max="100" value="92">
+          </div>
+          <p class="size-info" id="formatInfo"></p>
+        </div>
+      </div>
+    </section>
+  <section class="win" id="winAI" hidden aria-label="AI สร้างภาพ">
+      <div class="win-head"><span class="ico">🤖</span><strong>AI สร้างภาพ</strong><button type="button" class="win-close" aria-label="ปิด">✕</button></div>
+      <div class="card-body ai-log" id="aiLog"><p class="size-info" id="aiEmpty">พิมพ์สิ่งที่อยากให้สร้าง แล้วกดส่ง</p></div>
+      <div class="ai-composer">
+        <div class="ai-menu" id="aiMenu" hidden>
+          <h4>แนบรูปภาพ</h4>
+          <button type="button" class="ai-mi" id="aiPickImg">🖼 เลือกรูปจากเครื่อง</button>
+          <button type="button" class="ai-mi" id="aiUseCur">✏️ ใช้ภาพที่กำลังแก้ไขอยู่</button>
+          <h4>สกิล AI</h4><div id="aiSkills"></div>
+          <h4>ปลั๊กอิน</h4><div id="aiPlugins"></div>
+          <h4>เชื่อมต่อ AI (ใช้ API ตรง)</h4>
+          <select id="aiProvider" aria-label="ผู้ให้บริการ AI"></select>
+          <input type="text" id="aiModel" placeholder="ชื่อโมเดล" aria-label="ชื่อโมเดล" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <input type="url" id="aiEndpoint" placeholder="URL ของ API" aria-label="URL ของ API" autocomplete="off">
+          <input type="password" id="aiKey" placeholder="API key" aria-label="API key" autocomplete="off">
+          <p class="size-info" id="aiHint"></p>
+        </div>
+        <input type="file" id="aiFile" accept="image/*" multiple>
+        <div class="ai-chips" id="aiChips"></div>
+        <div class="ai-row">
+          <button type="button" id="aiPlus" class="ai-plus" aria-label="แนบ / สกิล / ปลั๊กอิน">+</button>
+          <textarea id="aiPrompt" rows="1" placeholder="อธิบายภาพที่ต้องการ…" aria-label="ข้อความ"></textarea>
+          <button type="button" id="aiSend" class="primary ai-send" aria-label="ส่ง">↑</button>
+        </div>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<div class="fab" id="fab">
+  <div class="fab-scrim" id="fabScrim"></div>
+  <div class="fab-dock">
+    <button type="button" class="fab-item" data-win="winFile" style="--ux:-1;--uy:0;--d:0ms;--c:#ff9500" aria-label="สีและไฟล์"><span class="fi">💾</span><span class="fl">ไฟล์</span></button>
+    <button type="button" class="fab-item" data-win="winAdjust" style="--ux:-.924;--uy:-.383;--d:45ms;--c:#ff2d55" aria-label="ปรับแต่งภาพ"><span class="fi">✨</span><span class="fl">ปรับแต่ง</span></button>
+    <button type="button" class="fab-item" data-win="winSize" style="--ux:-.707;--uy:-.707;--d:90ms;--c:#34c759" aria-label="ปรับขนาดภาพ"><span class="fi">📐</span><span class="fl">ขนาด</span></button>
+    <button type="button" class="fab-item" data-win="winTransform" style="--ux:-.383;--uy:-.924;--d:135ms;--c:#007aff" aria-label="แปลงภาพ"><span class="fi">🔄</span><span class="fl">แปลง</span></button>
+    <button type="button" class="fab-item" data-win="winAI" style="--ux:0;--uy:-1;--d:180ms;--c:#af52de" aria-label="AI สร้างภาพ"><span class="fi">🤖</span><span class="fl">AI</span></button>
+    <button type="button" class="fab-main" id="fabMain" aria-label="เครื่องมือ" aria-expanded="false"><span class="fab-ico">+</span></button>
+  </div>
+</div>
+
+<dialog id="settingsDlg" aria-labelledby="dlgTitle">
+  <div class="dlg-head"><strong id="dlgTitle">ตั้งค่าขนาดและราคา</strong><button type="button" id="dlgClose" aria-label="ปิด">✕</button></div>
+  <div class="dlg-body">
+    <section>
+      <h2>ขนาดงาน</h2>
+      <p class="size-info" id="dlgNoImg" hidden>เปิดรูปภาพก่อน จึงจะตั้งขนาดได้</p>
+      <div class="grid2">
+        <label>หน่วย
+          <select id="dUnit">
+            <option value="px">พิกเซล (px)</option>
+            <option value="cm">เซนติเมตร (cm)</option>
+            <option value="mm">มิลลิเมตร (mm)</option>
+            <option value="in">นิ้ว (in)</option>
+          </select>
+        </label>
+        <label>ความละเอียด (DPI)<input type="number" id="dDpi" min="1" max="1200" step="1"></label>
+      </div>
+      <div class="grid2">
+        <label><span id="dwL">กว้าง</span><input type="number" id="dW" min="0" step="any"></label>
+        <label><span id="dhL">สูง</span><input type="number" id="dH" min="0" step="any"></label>
+      </div>
+      <label class="check"><input type="checkbox" id="dLock"> ล็อกสัดส่วนภาพ</label>
+    </section>
+    <section>
+      <h2>ราคาตามประเภทงาน</h2>
+      <div id="jobList"></div>
+      <div class="row">
+        <button type="button" id="jobAdd">+ เพิ่มประเภทงาน</button>
+        <button type="button" id="jobReset">คืนค่าเริ่มต้น</button>
+      </div>
+      <p class="size-info">ราคาเริ่มต้นเป็นตัวเลขสมมติ กรุณาแก้ให้ตรงกับราคาจริงของคุณ ราคาคิดจาก พื้นที่ (กว้าง × สูง ที่ DPI) ÷ จำนวนพื้นที่ที่ร้านคิด × ราคา เช่น 120 ฿ ต่อ 1 ตร.ม. หรือ 45 ฿ ต่อ 1 ตร.ฟุต ร้านที่คิดไม่เท่ากันให้ตั้ง "ต่อ (จำนวน)" และหน่วยเอง ถ้าราคาที่คำนวณได้ต่ำกว่าราคาขั้นต่ำ จะคิดตามราคาขั้นต่ำ (ราคาจะเริ่มเพิ่มเมื่องานใหญ่จนเกินขั้นต่ำ)</p>
+    </section>
+  </div>
+</dialog>
+
+<script src="script.js?v=23"></script>
+  <script src="ai-chat.js"></script>
+</body>
+</html>
