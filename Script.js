@@ -206,6 +206,11 @@ function outputSize(){
   return { w:Math.max(1, Math.round(r.w*k)), h:Math.max(1, Math.round(r.h*k)) };
 }
 
+  const p = SCALE_PRESETS.find(p => p.id === state.preset) || SCALE_PRESETS[0];
+  const k = Math.min(p.factor(r.w, r.h), EXPORT_MAX / Math.max(r.w, r.h));
+  return { w:Math.max(1, Math.round(r.w*k)), h:Math.max(1, Math.round(r.h*k)) };
+}
+
 
 /* ---------- เรนเดอร์ ---------- */
 // วาดภาพที่หมุน/พลิก/ปรับสเกลแล้ว k = ตัวคูณเพิ่มเติม (ตัวอย่างใช้ k<1, ส่งออกใช้ k=1)
