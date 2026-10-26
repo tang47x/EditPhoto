@@ -185,12 +185,27 @@ function rotatedSize(){   // ขนาดภาพหลังหมุน ก�
 function outputSize(){
   const r = rotatedSize();
   if (state.scaleMode === 'manual') {
-    return { w:Math.min(EXPORT_MAX, Math.max(1, state.manual.w)), h:Math.min(EXPORT_MAX, Math.max(1, state.manual.h)) };
+    const m = state.manual;
+    const dpi = m.dpi || 300;
+    let wPx = unitToPx(m.w, m.unit, dpi);
+    let hPx = unitToPx(m.h, m.unit, dpi);
+
+    // ถ้ารายการเปิดล็อกสัดส่วน ให้คำนวณสัดส่วนตามภาพต้นฉบับอัตโนมัติ
+    if (m.lock && r.w > 0 && r.h > 0) {
+      const aspect = r.w / r.h;
+      hPx = Math.round(wPx / aspect);
+    }
+
+    return { 
+      w: Math.min(EXPORT_MAX, Math.max(1, wPx)), 
+      h: Math.min(EXPORT_MAX, Math.max(1, hPx)) 
+    };
   }
   const p = SCALE_PRESETS.find(p => p.id === state.preset) || SCALE_PRESETS[0];
   const k = Math.min(p.factor(r.w, r.h), EXPORT_MAX / Math.max(r.w, r.h));
   return { w:Math.max(1, Math.round(r.w*k)), h:Math.max(1, Math.round(r.h*k)) };
 }
+
 
 /* ---------- เรนเดอร์ ---------- */
 // วาดภาพที่หมุน/พลิก/ปรับสเกลแล้ว k = ตัวคูณเพิ่มเติม (ตัวอย่างใช้ k<1, ส่งออกใช้ k=1)
@@ -1186,3 +1201,17 @@ syncColorUI();
     setTimeout(() => { save.textContent = '💾 บันทึก'; if (!$('aiMenu').hidden) $('aiPlus').click(); }, 900);
   });
 })();
+// เพิ่ม 2 ตัวนี้เข้าไป (ถ้ายังไม่มี)
+function unitToPx(val, unit, dpi) {
+  if (unit === 'cm') return Math.round((val / 2.54) * dpi);
+  if (unit === 'mm') return Math.round((val / 25.4) * dpi);
+  if (unit === 'in') return Math.round(val * dpi);
+  return Math.round(val);
+}
+
+function pxToUnit(px, unit, dpi) {
+  if (unit === 'cm') return (px / dpi) * 2.54;
+  if (unit === 'mm') return (px / dpi) * 25.4;
+  if (unit === 'in') return px / dpi;
+  return px;
+}
